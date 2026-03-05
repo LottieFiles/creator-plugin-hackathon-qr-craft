@@ -109,7 +109,10 @@ export function DesignTab({ config, onUpdate, onContentTypeChange, onContentFiel
           return (
             <FieldComponent
               data={config.contentData[config.contentType]}
-              onUpdate={(field, value) => onContentFieldChange(config.contentType, field, value)}
+              onUpdate={(field, value) =>
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (onContentFieldChange as (type: QRContentType, field: string, value: any) => void)(config.contentType, field as string, value)
+              }
             />
           );
         })()}
