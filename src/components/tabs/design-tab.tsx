@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react';
 import { Label, Slider, Checkbox, SegmentedControl, cn } from '@lottiefiles/creator-plugins-ui';
-import { Upload, X, Link, Type, Wifi, MessageSquare, Phone, Mail, Shuffle } from 'lucide-react';
+import { Upload, X, Link, Type, Wifi, MessageSquare, Phone, Mail, Shuffle, Contact, MapPin, CalendarPlus } from 'lucide-react';
 import type { QRConfig, QRContentType, ContentTypeData, DotStyle, CornerStyle, CornerDotStyle } from '../../../shared/types.ts';
 import { ContentFieldComponents } from '../content-types/index.ts';
 
@@ -21,6 +21,9 @@ const CONTENT_TYPES: Array<{ value: QRContentType; label: string; icon: typeof L
   { value: 'sms', label: 'SMS', icon: MessageSquare },
   { value: 'phone', label: 'Phone', icon: Phone },
   { value: 'email', label: 'Email', icon: Mail },
+  { value: 'vcard', label: 'Contact', icon: Contact },
+  { value: 'geo', label: 'Location', icon: MapPin },
+  { value: 'event', label: 'Event', icon: CalendarPlus },
 ];
 
 const DOT_STYLES: StyleOption<DotStyle>[] = [

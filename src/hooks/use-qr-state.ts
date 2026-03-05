@@ -40,6 +40,9 @@ const DEFAULT_CONTENT_DATA: ContentTypeData = {
   sms: { number: '', message: '' },
   phone: { number: '' },
   email: { email: '', subject: '', body: '' },
+  vcard: { firstName: '', lastName: '', phone: '', email: '', organization: '', url: '' },
+  geo: { latitude: '', longitude: '', label: '' },
+  event: { title: '', startDate: '', startTime: '', endDate: '', endTime: '', location: '', description: '' },
 };
 
 const DEFAULT_QR_CONFIG: QRConfig = {

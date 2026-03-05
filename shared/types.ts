@@ -21,7 +21,7 @@ export type CornerStyle =
 
 export type CornerDotStyle = 'square' | 'rounded' | 'circle' | 'star' | 'heart' | 'diamond';
 
-export type QRContentType = 'url' | 'text' | 'wifi' | 'sms' | 'phone' | 'email';
+export type QRContentType = 'url' | 'text' | 'wifi' | 'sms' | 'phone' | 'email' | 'vcard' | 'geo' | 'event';
 export type WifiEncryption = 'WPA' | 'WEP' | 'nopass';
 
 export interface ContentTypeData {
@@ -31,6 +31,28 @@ export interface ContentTypeData {
   sms: { number: string; message: string };
   phone: { number: string };
   email: { email: string; subject: string; body: string };
+  vcard: {
+    firstName: string;
+    lastName: string;
+    phone: string;
+    email: string;
+    organization: string;
+    url: string;
+  };
+  geo: {
+    latitude: string;
+    longitude: string;
+    label: string;
+  };
+  event: {
+    title: string;
+    startDate: string;
+    startTime: string;
+    endDate: string;
+    endTime: string;
+    location: string;
+    description: string;
+  };
 }
 
 export interface QRConfig {

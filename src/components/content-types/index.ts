@@ -6,8 +6,11 @@ import { WifiFields } from './wifi-fields.tsx';
 import { SmsFields } from './sms-fields.tsx';
 import { PhoneFields } from './phone-fields.tsx';
 import { EmailFields } from './email-fields.tsx';
+import { VcardFields } from './vcard-fields.tsx';
+import { GeoFields } from './geo-fields.tsx';
+import { EventFields } from './event-fields.tsx';
 
-export { UrlFields, TextFields, WifiFields, SmsFields, PhoneFields, EmailFields };
+export { UrlFields, TextFields, WifiFields, SmsFields, PhoneFields, EmailFields, VcardFields, GeoFields, EventFields };
 
 interface FieldProps<T extends QRContentType> {
   data: ContentTypeData[T];
@@ -22,4 +25,7 @@ export const ContentFieldComponents: Record<QRContentType, ComponentType<FieldPr
   sms: SmsFields,
   phone: PhoneFields,
   email: EmailFields,
+  vcard: VcardFields,
+  geo: GeoFields,
+  event: EventFields,
 };
