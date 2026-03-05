@@ -1,8 +1,20 @@
 import { useState, useCallback } from 'react';
-import type { QRConfig, AnimationConfig } from '../../shared/types.ts';
+import type { QRConfig, QRContentType, AnimationConfig, ContentTypeData } from '../../shared/types.ts';
+import { encodeQRContent } from '../utils/qr-content-encoder.ts';
+
+const DEFAULT_CONTENT_DATA: ContentTypeData = {
+  url: { url: 'https://lottiefiles.com' },
+  text: { text: '' },
+  wifi: { ssid: '', password: '', encryption: 'WPA', hidden: false },
+  sms: { number: '', message: '' },
+  phone: { number: '' },
+  email: { email: '', subject: '', body: '' },
+};
 
 const DEFAULT_QR_CONFIG: QRConfig = {
   text: 'https://lottiefiles.com',
+  contentType: 'url',
+  contentData: DEFAULT_CONTENT_DATA,
   size: 400,
   errorCorrection: 'M',
   dotStyle: 'square',
@@ -38,6 +50,29 @@ export function useQRState() {
     });
   }, []);
 
+  const updateContentType = useCallback((type: QRContentType) => {
+    setQRConfig((prev) => ({
+      ...prev,
+      contentType: type,
+      text: encodeQRContent(type, prev.contentData[type]),
+    }));
+  }, []);
+
+  const updateContentField = useCallback(
+    <T extends QRContentType>(type: T, field: keyof ContentTypeData[T], value: ContentTypeData[T][keyof ContentTypeData[T]]) => {
+      setQRConfig((prev) => {
+        const updatedTypeData = { ...prev.contentData[type], [field]: value };
+        const contentData = { ...prev.contentData, [type]: updatedTypeData };
+        return {
+          ...prev,
+          contentData,
+          text: encodeQRContent(type, updatedTypeData),
+        };
+      });
+    },
+    [],
+  );
+
   const updateAnimationConfig = useCallback(
     <K extends keyof AnimationConfig>(key: K, value: AnimationConfig[K]) => {
       setAnimationConfig((prev) => ({ ...prev, [key]: value }));
@@ -45,5 +80,5 @@ export function useQRState() {
     [],
   );
 
-  return { qrConfig, updateQRConfig, animationConfig, updateAnimationConfig };
+  return { qrConfig, updateQRConfig, animationConfig, updateAnimationConfig, updateContentType, updateContentField };
 }

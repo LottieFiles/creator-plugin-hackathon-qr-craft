@@ -11,7 +11,7 @@ import { renderQRSvgLayers } from './utils/svg-renderer.ts';
 import { sendToPluginAsync } from './utils/messaging.ts';
 
 export function App() {
-  const { qrConfig, updateQRConfig, animationConfig, updateAnimationConfig } = useQRState();
+  const { qrConfig, updateQRConfig, animationConfig, updateAnimationConfig, updateContentType, updateContentField } = useQRState();
   const { themeTokens, themeName } = useTheme();
   const previewRef = useRef<QRPreviewHandle>(null);
   const [framerate, setFramerate] = useState(30);
@@ -43,7 +43,12 @@ export function App() {
 
             <div className="flex-1 overflow-y-auto">
               <TabsContent value="design">
-                <DesignTab config={qrConfig} onUpdate={updateQRConfig} />
+                <DesignTab
+                  config={qrConfig}
+                  onUpdate={updateQRConfig}
+                  onContentTypeChange={updateContentType}
+                  onContentFieldChange={updateContentField}
+                />
               </TabsContent>
 
               <TabsContent value="animate">

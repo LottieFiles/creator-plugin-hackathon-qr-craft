@@ -19,8 +19,22 @@ export type CornerStyle =
   | 'classy'
   | 'leaf';
 
+export type QRContentType = 'url' | 'text' | 'wifi' | 'sms' | 'phone' | 'email';
+export type WifiEncryption = 'WPA' | 'WEP' | 'nopass';
+
+export interface ContentTypeData {
+  url: { url: string };
+  text: { text: string };
+  wifi: { ssid: string; password: string; encryption: WifiEncryption; hidden: boolean };
+  sms: { number: string; message: string };
+  phone: { number: string };
+  email: { email: string; subject: string; body: string };
+}
+
 export interface QRConfig {
   text: string;
+  contentType: QRContentType;
+  contentData: ContentTypeData;
   size: number;
   errorCorrection: 'L' | 'M' | 'Q' | 'H';
   dotStyle: DotStyle;

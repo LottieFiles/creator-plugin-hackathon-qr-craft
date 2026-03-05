@@ -1,14 +1,26 @@
 import { useCallback, useRef } from 'react';
-import { Input, Label, Slider, Checkbox, SegmentedControl, cn } from '@lottiefiles/creator-plugins-ui';
-import { Upload, X } from 'lucide-react';
-import type { QRConfig, DotStyle, CornerStyle } from '../../../shared/types.ts';
+import { Label, Slider, Checkbox, SegmentedControl, cn } from '@lottiefiles/creator-plugins-ui';
+import { Upload, X, Link, Type, Wifi, MessageSquare, Phone, Mail } from 'lucide-react';
+import type { QRConfig, QRContentType, ContentTypeData, DotStyle, CornerStyle } from '../../../shared/types.ts';
+import { ContentFieldComponents } from '../content-types/index.ts';
 
 type StyleOption<T extends string> = { value: T; label: string };
 
 interface DesignTabProps {
   config: QRConfig;
   onUpdate: <K extends keyof QRConfig>(key: K, value: QRConfig[K]) => void;
+  onContentTypeChange: (type: QRContentType) => void;
+  onContentFieldChange: <T extends QRContentType>(type: T, field: keyof ContentTypeData[T], value: ContentTypeData[T][keyof ContentTypeData[T]]) => void;
 }
+
+const CONTENT_TYPES: Array<{ value: QRContentType; label: string; icon: typeof Link }> = [
+  { value: 'url', label: 'URL', icon: Link },
+  { value: 'text', label: 'Text', icon: Type },
+  { value: 'wifi', label: 'Wi-Fi', icon: Wifi },
+  { value: 'sms', label: 'SMS', icon: MessageSquare },
+  { value: 'phone', label: 'Phone', icon: Phone },
+  { value: 'email', label: 'Email', icon: Mail },
+];
 
 const DOT_STYLES: StyleOption<DotStyle>[] = [
   { value: 'square', label: '■' },
@@ -45,7 +57,7 @@ const GRADIENT_TYPES: Array<{ value: QRConfig['gradientType']; label: string }> 
   { value: 'radial', label: 'Radial' },
 ];
 
-export function DesignTab({ config, onUpdate }: DesignTabProps) {
+export function DesignTab({ config, onUpdate, onContentTypeChange, onContentFieldChange }: DesignTabProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleLogoUpload = useCallback(
@@ -69,14 +81,38 @@ export function DesignTab({ config, onUpdate }: DesignTabProps) {
 
   return (
     <div className="flex flex-col gap-4 p-3">
-      {/* Text/URL */}
-      <div className="flex flex-col gap-1.5">
-        <Label variant="title">Text / URL</Label>
-        <Input
-          value={config.text}
-          onChange={(e) => onUpdate('text', e.target.value)}
-          placeholder="Enter text or URL"
-        />
+      {/* Content Type */}
+      <div className="flex flex-col gap-2">
+        <Label variant="title">Content</Label>
+        <div className="grid grid-cols-3 gap-1">
+          {CONTENT_TYPES.map(({ value, label, icon: Icon }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => onContentTypeChange(value)}
+              className={cn(
+                'flex flex-col items-center gap-1 rounded-md px-2 py-2 text-xs font-medium transition-colors',
+                'border border-transparent',
+                'hover:bg-secondary/80',
+                config.contentType === value
+                  ? 'bg-secondary text-foreground border-border'
+                  : 'text-muted-foreground',
+              )}
+            >
+              <Icon className="size-4" />
+              {label}
+            </button>
+          ))}
+        </div>
+        {(() => {
+          const FieldComponent = ContentFieldComponents[config.contentType];
+          return (
+            <FieldComponent
+              data={config.contentData[config.contentType]}
+              onUpdate={(field, value) => onContentFieldChange(config.contentType, field, value)}
+            />
+          );
+        })()}
       </div>
 
       {/* Error Correction */}
