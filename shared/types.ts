@@ -19,6 +19,8 @@ export type CornerStyle =
   | 'classy'
   | 'leaf';
 
+export type CornerDotStyle = 'square' | 'rounded' | 'circle' | 'star' | 'heart' | 'diamond';
+
 export type QRContentType = 'url' | 'text' | 'wifi' | 'sms' | 'phone' | 'email';
 export type WifiEncryption = 'WPA' | 'WEP' | 'nopass';
 
@@ -47,6 +49,11 @@ export interface QRConfig {
   gradientType: 'linear' | 'radial';
   logoDataUrl: string | null;
   logoSizePercent: number;
+  cornerDotStyle: CornerDotStyle;
+  useCornerGradient: boolean;
+  cornerGradientStart: string;
+  cornerGradientEnd: string;
+  cornerGradientType: 'linear' | 'radial';
 }
 
 export type RevealStyle =

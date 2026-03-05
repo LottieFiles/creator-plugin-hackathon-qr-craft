@@ -27,6 +27,11 @@ const DEFAULT_QR_CONFIG: QRConfig = {
   gradientType: 'linear',
   logoDataUrl: null,
   logoSizePercent: 20,
+  cornerDotStyle: 'square',
+  useCornerGradient: false,
+  cornerGradientStart: '#ef4444',
+  cornerGradientEnd: '#f97316',
+  cornerGradientType: 'linear',
 };
 
 const DEFAULT_ANIMATION_CONFIG: AnimationConfig = {

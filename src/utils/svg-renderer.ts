@@ -1,5 +1,50 @@
-import type { QRConfig, QRLayer, RevealStyle } from '../../shared/types.ts';
+import type { QRConfig, QRLayer, RevealStyle, CornerDotStyle } from '../../shared/types.ts';
 import { generateQRMatrix, isInFinderPattern } from './qr-matrix.ts';
+
+function buildGradientDefs(config: QRConfig): string {
+  if (!config.useGradient) return '';
+
+  let defs = '';
+
+  // Main dot gradient
+  if (config.gradientType === 'linear') {
+    defs += `<linearGradient id="qr-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="${config.gradientStart}" />
+        <stop offset="100%" stop-color="${config.gradientEnd}" />
+      </linearGradient>`;
+  } else {
+    defs += `<radialGradient id="qr-gradient" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="${config.gradientStart}" />
+        <stop offset="100%" stop-color="${config.gradientEnd}" />
+      </radialGradient>`;
+  }
+
+  // Separate corner gradient
+  if (config.useCornerGradient) {
+    if (config.cornerGradientType === 'linear') {
+      defs += `\n<linearGradient id="qr-corner-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="${config.cornerGradientStart}" />
+        <stop offset="100%" stop-color="${config.cornerGradientEnd}" />
+      </linearGradient>`;
+    } else {
+      defs += `\n<radialGradient id="qr-corner-gradient" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="${config.cornerGradientStart}" />
+        <stop offset="100%" stop-color="${config.cornerGradientEnd}" />
+      </radialGradient>`;
+    }
+  }
+
+  return defs;
+}
+
+function getDualFills(config: QRConfig): { dotFill: string; cornerFill: string } {
+  const dotFill = config.useGradient ? 'url(#qr-gradient)' : config.fgColor;
+  const cornerFill =
+    config.useGradient && config.useCornerGradient
+      ? 'url(#qr-corner-gradient)'
+      : dotFill;
+  return { dotFill, cornerFill };
+}
 
 export function renderQRSvg(config: QRConfig): string {
   const matrix = generateQRMatrix(config.text || 'https://lottiefiles.com', config.errorCorrection);
@@ -7,24 +52,8 @@ export function renderQRSvg(config: QRConfig): string {
   const moduleSize = config.size / moduleCount;
   const parts: string[] = [];
 
-  // Defs for gradient
-  const fillId = config.useGradient ? 'qr-gradient' : undefined;
-  const fillAttr = fillId ? `url(#${fillId})` : config.fgColor;
-
-  let defs = '';
-  if (config.useGradient) {
-    if (config.gradientType === 'linear') {
-      defs = `<linearGradient id="${fillId}" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="${config.gradientStart}" />
-        <stop offset="100%" stop-color="${config.gradientEnd}" />
-      </linearGradient>`;
-    } else {
-      defs = `<radialGradient id="${fillId}" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="${config.gradientStart}" />
-        <stop offset="100%" stop-color="${config.gradientEnd}" />
-      </radialGradient>`;
-    }
-  }
+  const gradientDefs = buildGradientDefs(config);
+  const { dotFill, cornerFill } = getDualFills(config);
 
   // Render data modules (non-finder-pattern)
   for (let row = 0; row < moduleCount; row++) {
@@ -39,13 +68,13 @@ export function renderQRSvg(config: QRConfig): string {
 
       const x = col * moduleSize;
       const y = row * moduleSize;
-      parts.push(renderDot(x, y, moduleSize, config.dotStyle, fillAttr));
+      parts.push(renderDot(x, y, moduleSize, config.dotStyle, dotFill));
     }
   }
 
   // Render finder patterns with corner style
   for (const region of matrix.finderPatternRegions) {
-    parts.push(renderFinderPattern(region.row, region.col, moduleSize, config.cornerStyle, fillAttr));
+    parts.push(renderFinderPattern(region.row, region.col, moduleSize, config.cornerStyle, cornerFill, config.bgColor, config.cornerDotStyle));
   }
 
   // Logo overlay
@@ -57,7 +86,7 @@ export function renderQRSvg(config: QRConfig): string {
   }
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${config.size} ${config.size}" width="${config.size}" height="${config.size}">
-${defs ? `<defs>${defs}</defs>` : ''}
+${gradientDefs ? `<defs>${gradientDefs}</defs>` : ''}
 <rect width="${config.size}" height="${config.size}" fill="${config.bgColor}" />
 ${parts.join('\n')}
 ${logoSvg}
@@ -81,23 +110,8 @@ export function renderQRSvgLayers(config: QRConfig, revealStyle: RevealStyle): Q
   const moduleCount = matrix.size;
   const moduleSize = config.size / moduleCount;
 
-  const fillId = config.useGradient ? 'qr-gradient' : undefined;
-  const fillAttr = fillId ? `url(#${fillId})` : config.fgColor;
-
-  let gradientDefs = '';
-  if (config.useGradient) {
-    if (config.gradientType === 'linear') {
-      gradientDefs = `<linearGradient id="${fillId}" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="${config.gradientStart}" />
-        <stop offset="100%" stop-color="${config.gradientEnd}" />
-      </linearGradient>`;
-    } else {
-      gradientDefs = `<radialGradient id="${fillId}" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="${config.gradientStart}" />
-        <stop offset="100%" stop-color="${config.gradientEnd}" />
-      </radialGradient>`;
-    }
-  }
+  const gradientDefs = buildGradientDefs(config);
+  const { dotFill, cornerFill } = getDualFills(config);
 
   // Determine number of groups per style
   const groupCounts: Partial<Record<RevealStyle, number>> = {
@@ -132,7 +146,7 @@ export function renderQRSvgLayers(config: QRConfig, revealStyle: RevealStyle): Q
       const group = moduleGroups[row]![col]!;
       const x = col * moduleSize;
       const y = row * moduleSize;
-      groupParts[group]!.push(renderDot(x, y, moduleSize, config.dotStyle, fillAttr));
+      groupParts[group]!.push(renderDot(x, y, moduleSize, config.dotStyle, dotFill));
     }
   }
 
@@ -140,7 +154,7 @@ export function renderQRSvgLayers(config: QRConfig, revealStyle: RevealStyle): Q
   for (const region of matrix.finderPatternRegions) {
     const group = moduleGroups[region.row]![region.col]!;
     groupParts[group]!.push(
-      renderFinderPattern(region.row, region.col, moduleSize, config.cornerStyle, fillAttr),
+      renderFinderPattern(region.row, region.col, moduleSize, config.cornerStyle, cornerFill, config.bgColor, config.cornerDotStyle),
     );
   }
 
@@ -211,23 +225,8 @@ export function renderQRSvgGrouped(
   const moduleCount = matrix.size;
   const moduleSize = config.size / moduleCount;
 
-  const fillId = config.useGradient ? 'qr-gradient' : undefined;
-  const fillAttr = fillId ? `url(#${fillId})` : config.fgColor;
-
-  let gradientDefs = '';
-  if (config.useGradient) {
-    if (config.gradientType === 'linear') {
-      gradientDefs = `<linearGradient id="${fillId}" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="${config.gradientStart}" />
-        <stop offset="100%" stop-color="${config.gradientEnd}" />
-      </linearGradient>`;
-    } else {
-      gradientDefs = `<radialGradient id="${fillId}" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="${config.gradientStart}" />
-        <stop offset="100%" stop-color="${config.gradientEnd}" />
-      </radialGradient>`;
-    }
-  }
+  const gradientDefs = buildGradientDefs(config);
+  const { dotFill, cornerFill } = getDualFills(config);
 
   const groupCounts: Partial<Record<RevealStyle, number>> = {
     'pixel-scatter': 14,
@@ -258,14 +257,14 @@ export function renderQRSvgGrouped(
       const group = moduleGroups[row]![col]!;
       const x = col * moduleSize;
       const y = row * moduleSize;
-      groupParts[group]!.push(renderDot(x, y, moduleSize, config.dotStyle, fillAttr));
+      groupParts[group]!.push(renderDot(x, y, moduleSize, config.dotStyle, dotFill));
     }
   }
 
   for (const region of matrix.finderPatternRegions) {
     const group = moduleGroups[region.row]![region.col]!;
     groupParts[group]!.push(
-      renderFinderPattern(region.row, region.col, moduleSize, config.cornerStyle, fillAttr),
+      renderFinderPattern(region.row, region.col, moduleSize, config.cornerStyle, cornerFill, config.bgColor, config.cornerDotStyle),
     );
   }
 
@@ -452,23 +451,64 @@ function renderDot(
   }
 }
 
+function renderCornerDot(
+  x: number,
+  y: number,
+  size: number,
+  style: CornerDotStyle,
+  fill: string,
+): string {
+  switch (style) {
+    case 'square':
+      return `<rect x="${x}" y="${y}" width="${size}" height="${size}" fill="${fill}" />`;
+    case 'rounded':
+      return `<rect x="${x}" y="${y}" width="${size}" height="${size}" rx="${size * 0.2}" fill="${fill}" />`;
+    case 'circle': {
+      const r = size / 2;
+      return `<circle cx="${x + r}" cy="${y + r}" r="${r}" fill="${fill}" />`;
+    }
+    case 'diamond': {
+      const cx = x + size / 2;
+      const cy = y + size / 2;
+      const half = size / 2;
+      return `<polygon points="${cx},${cy - half} ${cx + half},${cy} ${cx},${cy + half} ${cx - half},${cy}" fill="${fill}" />`;
+    }
+    case 'star': {
+      const cx = x + size / 2;
+      const cy = y + size / 2;
+      const outerR = size / 2;
+      const innerR = outerR * 0.4;
+      const pts: string[] = [];
+      for (let i = 0; i < 10; i++) {
+        const r = i % 2 === 0 ? outerR : innerR;
+        const angle = (Math.PI / 2) * -1 + (Math.PI / 5) * i;
+        pts.push(`${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`);
+      }
+      return `<polygon points="${pts.join(' ')}" fill="${fill}" />`;
+    }
+    case 'heart': {
+      const cx = x + size / 2;
+      const cy = y + size / 2;
+      const hs = size / 2;
+      return `<path d="M${cx},${cy + hs * 0.7} C${cx - hs * 1.2},${cy - hs * 0.2} ${cx - hs * 0.6},${cy - hs * 0.9} ${cx},${cy - hs * 0.3} C${cx + hs * 0.6},${cy - hs * 0.9} ${cx + hs * 1.2},${cy - hs * 0.2} ${cx},${cy + hs * 0.7} Z" fill="${fill}" />`;
+    }
+  }
+}
+
 function renderFinderRects(
   x: number,
   y: number,
   moduleSize: number,
   rxOuter: number,
   rxMiddle: number,
-  rxInner: number,
   fill: string,
+  bgColor: string,
 ): string {
   const outerSize = 7 * moduleSize;
   const middleSize = 5 * moduleSize;
-  const innerSize = 3 * moduleSize;
   const mo = moduleSize;
-  const io = 2 * moduleSize;
   return `<rect x="${x}" y="${y}" width="${outerSize}" height="${outerSize}" rx="${rxOuter}" fill="${fill}" />
-<rect x="${x + mo}" y="${y + mo}" width="${middleSize}" height="${middleSize}" rx="${rxMiddle}" fill="white" />
-<rect x="${x + io}" y="${y + io}" width="${innerSize}" height="${innerSize}" rx="${rxInner}" fill="${fill}" />`;
+<rect x="${x + mo}" y="${y + mo}" width="${middleSize}" height="${middleSize}" rx="${rxMiddle}" fill="${bgColor}" />`;
 }
 
 function renderFinderPattern(
@@ -477,6 +517,8 @@ function renderFinderPattern(
   moduleSize: number,
   cornerStyle: QRConfig['cornerStyle'],
   fill: string,
+  bgColor: string,
+  cornerDotStyle: CornerDotStyle,
 ): string {
   const x = startCol * moduleSize;
   const y = startRow * moduleSize;
@@ -486,20 +528,25 @@ function renderFinderPattern(
   const mo = moduleSize;
   const io = 2 * moduleSize;
 
+  // Inner dot position and size
+  const innerX = x + io;
+  const innerY = y + io;
+  const innerDot = renderCornerDot(innerX, innerY, innerSize, cornerDotStyle, fill);
+
   switch (cornerStyle) {
     case 'square':
-      return renderFinderRects(x, y, moduleSize, 0, 0, 0, fill);
+      return renderFinderRects(x, y, moduleSize, 0, 0, fill, bgColor) + '\n' + innerDot;
     case 'rounded':
-      return renderFinderRects(x, y, moduleSize, moduleSize * 0.8, moduleSize * 0.6, moduleSize * 0.4, fill);
+      return renderFinderRects(x, y, moduleSize, moduleSize * 0.8, moduleSize * 0.6, fill, bgColor) + '\n' + innerDot;
     case 'circle':
-      return renderFinderRects(x, y, moduleSize, outerSize / 2, middleSize / 2, innerSize / 2, fill);
+      return renderFinderRects(x, y, moduleSize, outerSize / 2, middleSize / 2, fill, bgColor) + '\n' + innerDot;
     case 'extra-rounded':
-      return renderFinderRects(x, y, moduleSize, moduleSize * 1.6, moduleSize * 1.2, moduleSize * 0.8, fill);
+      return renderFinderRects(x, y, moduleSize, moduleSize * 1.6, moduleSize * 1.2, fill, bgColor) + '\n' + innerDot;
     case 'dot':
-      // Square outer + white square middle + circle inner
+      // Square outer + bg square middle + corner dot inner
       return `<rect x="${x}" y="${y}" width="${outerSize}" height="${outerSize}" fill="${fill}" />
-<rect x="${x + mo}" y="${y + mo}" width="${middleSize}" height="${middleSize}" fill="white" />
-<circle cx="${x + outerSize / 2}" cy="${y + outerSize / 2}" r="${innerSize / 2}" fill="${fill}" />`;
+<rect x="${x + mo}" y="${y + mo}" width="${middleSize}" height="${middleSize}" fill="${bgColor}" />
+${innerDot}`;
     case 'classy': {
       // Top-left + bottom-right rounded, others sharp
       const r = moduleSize * 1.2;
@@ -508,11 +555,7 @@ function renderFinderPattern(
       const mx = x + mo;
       const my = y + mo;
       const middlePath = `M${mx + rm},${my} L${mx + middleSize},${my} L${mx + middleSize},${my + middleSize - rm} Q${mx + middleSize},${my + middleSize} ${mx + middleSize - rm},${my + middleSize} L${mx},${my + middleSize} L${mx},${my + rm} Q${mx},${my} ${mx + rm},${my} Z`;
-      const ri = moduleSize * 0.6;
-      const ix = x + io;
-      const iy = y + io;
-      const innerPath = `M${ix + ri},${iy} L${ix + innerSize},${iy} L${ix + innerSize},${iy + innerSize - ri} Q${ix + innerSize},${iy + innerSize} ${ix + innerSize - ri},${iy + innerSize} L${ix},${iy + innerSize} L${ix},${iy + ri} Q${ix},${iy} ${ix + ri},${iy} Z`;
-      return `<path d="${outerPath}" fill="${fill}" /><path d="${middlePath}" fill="white" /><path d="${innerPath}" fill="${fill}" />`;
+      return `<path d="${outerPath}" fill="${fill}" /><path d="${middlePath}" fill="${bgColor}" />${innerDot}`;
     }
     case 'leaf': {
       // Top-left + bottom-right rounded (organic leaf feel)
@@ -522,11 +565,7 @@ function renderFinderPattern(
       const mx = x + mo;
       const my = y + mo;
       const middlePath = `M${mx + rm},${my} L${mx + middleSize},${my} L${mx + middleSize},${my + middleSize - rm} Q${mx + middleSize},${my + middleSize} ${mx + middleSize - rm},${my + middleSize} L${mx},${my + middleSize} L${mx},${my + rm} Q${mx},${my} ${mx + rm},${my} Z`;
-      const ri = moduleSize * 0.8;
-      const ix = x + io;
-      const iy = y + io;
-      const innerPath = `M${ix + ri},${iy} L${ix + innerSize},${iy} L${ix + innerSize},${iy + innerSize - ri} Q${ix + innerSize},${iy + innerSize} ${ix + innerSize - ri},${iy + innerSize} L${ix},${iy + innerSize} L${ix},${iy + ri} Q${ix},${iy} ${ix + ri},${iy} Z`;
-      return `<path d="${outerPath}" fill="${fill}" /><path d="${middlePath}" fill="white" /><path d="${innerPath}" fill="${fill}" />`;
+      return `<path d="${outerPath}" fill="${fill}" /><path d="${middlePath}" fill="${bgColor}" />${innerDot}`;
     }
   }
 }

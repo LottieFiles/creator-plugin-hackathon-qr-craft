@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react';
 import { Label, Slider, Checkbox, SegmentedControl, cn } from '@lottiefiles/creator-plugins-ui';
 import { Upload, X, Link, Type, Wifi, MessageSquare, Phone, Mail } from 'lucide-react';
-import type { QRConfig, QRContentType, ContentTypeData, DotStyle, CornerStyle } from '../../../shared/types.ts';
+import type { QRConfig, QRContentType, ContentTypeData, DotStyle, CornerStyle, CornerDotStyle } from '../../../shared/types.ts';
 import { ContentFieldComponents } from '../content-types/index.ts';
 
 type StyleOption<T extends string> = { value: T; label: string };
@@ -43,6 +43,15 @@ const CORNER_STYLES: StyleOption<CornerStyle>[] = [
   { value: 'dot', label: '◼' },
   { value: 'classy', label: '◰' },
   { value: 'leaf', label: '❧' },
+];
+
+const CORNER_DOT_STYLES: StyleOption<CornerDotStyle>[] = [
+  { value: 'square', label: '■' },
+  { value: 'rounded', label: '▢' },
+  { value: 'circle', label: '●' },
+  { value: 'star', label: '★' },
+  { value: 'heart', label: '♥' },
+  { value: 'diamond', label: '◆' },
 ];
 
 const ERROR_LEVELS: Array<{ value: QRConfig['errorCorrection']; label: string }> = [
@@ -179,6 +188,31 @@ export function DesignTab({ config, onUpdate, onContentTypeChange, onContentFiel
         </div>
       </div>
 
+      {/* Corner Dot Style */}
+      <div className="flex flex-col gap-1.5">
+        <Label variant="title">Corner Dot Style</Label>
+        <div className="grid grid-cols-3 gap-1">
+          {CORNER_DOT_STYLES.map((style) => (
+            <button
+              key={style.value}
+              type="button"
+              onClick={() => onUpdate('cornerDotStyle', style.value)}
+              className={cn(
+                'rounded-md px-2 py-1.5 text-sm font-medium transition-colors',
+                'border border-transparent',
+                'hover:bg-secondary/80',
+                config.cornerDotStyle === style.value
+                  ? 'bg-secondary text-foreground border-border'
+                  : 'text-muted-foreground',
+              )}
+              title={style.value}
+            >
+              {style.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Colors */}
       <div className="flex flex-col gap-1.5">
         <Label variant="title">Colors</Label>
@@ -218,6 +252,38 @@ export function DesignTab({ config, onUpdate, onContentTypeChange, onContentFiel
               onChange={(v) => onUpdate('gradientType', v as QRConfig['gradientType'])}
               size="sm"
             />
+
+            {/* Separate corner gradient */}
+            <div className="flex items-center gap-2 mt-1">
+              <Checkbox
+                checked={config.useCornerGradient}
+                onCheckedChange={(checked) => onUpdate('useCornerGradient', checked === true)}
+              />
+              <Label>Separate corner gradient</Label>
+            </div>
+
+            {config.useCornerGradient && (
+              <div className="flex flex-col gap-2 pl-6">
+                <div className="flex items-center gap-3">
+                  <ColorSwatch
+                    label="Start"
+                    color={config.cornerGradientStart}
+                    onChange={(c) => onUpdate('cornerGradientStart', c)}
+                  />
+                  <ColorSwatch
+                    label="End"
+                    color={config.cornerGradientEnd}
+                    onChange={(c) => onUpdate('cornerGradientEnd', c)}
+                  />
+                </div>
+                <SegmentedControl
+                  value={config.cornerGradientType}
+                  options={GRADIENT_TYPES}
+                  onChange={(v) => onUpdate('cornerGradientType', v as QRConfig['cornerGradientType'])}
+                  size="sm"
+                />
+              </div>
+            )}
           </div>
         )}
       </div>
