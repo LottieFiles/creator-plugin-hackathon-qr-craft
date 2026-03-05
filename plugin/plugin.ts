@@ -3,7 +3,7 @@ import { generateLayerKeyframes } from '../shared/animation.ts';
 
 creator.ui.show({
   width: 380,
-  height: 620,
+  height: 800,
 });
 
 function sendTheme() {

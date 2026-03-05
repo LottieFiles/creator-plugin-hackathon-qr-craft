@@ -11,7 +11,7 @@ import { renderQRSvgLayers } from './utils/svg-renderer.ts';
 import { sendToPluginAsync } from './utils/messaging.ts';
 
 export function App() {
-  const { qrConfig, updateQRConfig, animationConfig, updateAnimationConfig, updateContentType, updateContentField } = useQRState();
+  const { qrConfig, updateQRConfig, animationConfig, updateAnimationConfig, updateContentType, updateContentField, randomizeStyles } = useQRState();
   const { themeTokens, themeName } = useTheme();
   const previewRef = useRef<QRPreviewHandle>(null);
   const [framerate, setFramerate] = useState(30);
@@ -48,6 +48,7 @@ export function App() {
                   onUpdate={updateQRConfig}
                   onContentTypeChange={updateContentType}
                   onContentFieldChange={updateContentField}
+                  onRandomize={randomizeStyles}
                 />
               </TabsContent>
 

@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react';
 import { Label, Slider, Checkbox, SegmentedControl, cn } from '@lottiefiles/creator-plugins-ui';
-import { Upload, X, Link, Type, Wifi, MessageSquare, Phone, Mail } from 'lucide-react';
+import { Upload, X, Link, Type, Wifi, MessageSquare, Phone, Mail, Shuffle } from 'lucide-react';
 import type { QRConfig, QRContentType, ContentTypeData, DotStyle, CornerStyle, CornerDotStyle } from '../../../shared/types.ts';
 import { ContentFieldComponents } from '../content-types/index.ts';
 
@@ -11,6 +11,7 @@ interface DesignTabProps {
   onUpdate: <K extends keyof QRConfig>(key: K, value: QRConfig[K]) => void;
   onContentTypeChange: (type: QRContentType) => void;
   onContentFieldChange: <T extends QRContentType>(type: T, field: keyof ContentTypeData[T], value: ContentTypeData[T][keyof ContentTypeData[T]]) => void;
+  onRandomize: () => void;
 }
 
 const CONTENT_TYPES: Array<{ value: QRContentType; label: string; icon: typeof Link }> = [
@@ -66,7 +67,7 @@ const GRADIENT_TYPES: Array<{ value: QRConfig['gradientType']; label: string }> 
   { value: 'radial', label: 'Radial' },
 ];
 
-export function DesignTab({ config, onUpdate, onContentTypeChange, onContentFieldChange }: DesignTabProps) {
+export function DesignTab({ config, onUpdate, onContentTypeChange, onContentFieldChange, onRandomize }: DesignTabProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleLogoUpload = useCallback(
@@ -126,6 +127,20 @@ export function DesignTab({ config, onUpdate, onContentTypeChange, onContentFiel
           );
         })()}
       </div>
+
+      {/* Randomize */}
+      <button
+        type="button"
+        onClick={onRandomize}
+        className={cn(
+          'flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs w-full',
+          'border border-border bg-background text-foreground',
+          'hover:bg-muted transition-colors',
+        )}
+      >
+        <Shuffle className="size-3.5" />
+        Randomize Styles
+      </button>
 
       {/* Error Correction */}
       <div className="flex flex-col gap-1.5">
