@@ -2,6 +2,14 @@
 
 A [LottieFiles Creator](https://www.lottiefiles.com/) plugin for generating stylized, animated QR codes directly on your canvas.
 
+## Demo
+
+<p align="center">
+  <img src="assets/sample.gif" alt="QR Craft demo – animated QR code" width="400" />
+</p>
+
+> A sample Lottie animation (`assets/sample.json`) and video (`assets/sample.mp4`) are also included. The video and gif were generated using [ffdotlottie](https://github.com/LottieFiles/ffdotlottie).
+
 ## Features
 
 ### Design
