@@ -9,7 +9,8 @@
     "build:prod": "tsc -b && vite build",
     "build:dev": "tsc -b && vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "package": "pnpm build && cd dist && zip -r ../plugin.zip ."
   },
   "dependencies": {
     "@lottiefiles/creator-plugins-ui": "^0.2.0",
