@@ -1,0 +1,7 @@
+{
+  "id": "a7e2c4f1-9b3d-4a8e-b6f5-2d1c9e4a7b3f",
+  "name": "QR Craft",
+  "apiVersion": "1",
+  "entry": "plugin.js",
+  "ui": "ui.html"
+}
